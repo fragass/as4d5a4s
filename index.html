@@ -1,30 +1,36 @@
-<html>
-    <head>
-        <style>
-            body, html {
-                margin: 0;
-                padding: 0;
-                width: 100%;
-                height: 100%;
-                background: black;
-            }
-        </style>
-    </head>
-    <body>
-        <div style="width:100%;height:100%">
-            <div id="game"></div>
-        </div>
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8">
+    <title>Silent Hill - EmulatorJS</title>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background: black;
+        overflow: hidden;
+      }
+      #game {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game"></div>
 
-        <script>
-            EJS_player = "#game";
-            EJS_core = "psx";
-            EJS_gameName = "Silent Hill";
-            EJS_color = "#000000";
-            EJS_startOnLoaded = true;
-            EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
-            EJS_gameUrl = "https://drive.google.com/uc?export=download&id=1aSobvOTOTidrf2nerB2iAxen9ad31jQq";
-        </script>
+    <script>
+      EJS_player = "#game";
+      EJS_core = "psx";
+      EJS_gameName = "Silent Hill";
+      EJS_color = "#000000";
+      EJS_startOnLoaded = true;
+      EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+      EJS_gameUrl = "https://github.com/fragass/as4d5a4s/releases/download/hill/Silent.Hill.zip";
+    </script>
 
-        <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
-    </body>
+    <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+  </body>
 </html>
