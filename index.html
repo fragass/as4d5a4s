@@ -1,42 +1,33 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>Crash Bandicoot - EmulatorJS</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html>
+    <head>
+        <!--HTML file auto generated using EmulatorJS codehelper-->
+        <style>
+            body, html {
+                margin: 0;
+                padding: 0;
+            }
+        </style>
+    </head>
+    <body>
+<div style='width:640px;height:480px;max-width:100%'>
+    <div id='game'></div>
+</div>
 
-  <style>
-    body {
-      margin: 0;
-      background: #000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    #game {
-      width: 100%;
-      max-width: 800px;
-      aspect-ratio: 4 / 3;
-    }
-  </style>
-</head>
-<body>
-
-  <div id="game"></div>
-
-  <script>
-    // Caminho do jogo (mesma pasta do index.html)
-    window.EJS_player = "#game";
-    window.EJS_core = "psx";
-    window.EJS_gameUrl = "Crash Bandicoot.zip";
-
-    // Opcional, mas recomendado
-    window.EJS_biosUrl = ""; // se tiver BIOS, pode colocar aqui
-    window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
-  </script>
-
-  <script src="https://cdn.emulatorjs.org/stable/loader.js"></script>
-
-</body>
+<script type='text/javascript'>
+    EJS_player = '#game';
+    
+    // Can also be pcsx_rearmed or mednafen_psx_hw
+    EJS_core = 'psx';
+    
+    // URL to BIOS file
+    EJS_biosUrl = '490f666e1afb15b7362b406ed1cea246';
+    
+    // URL to Game rom
+    EJS_gameUrl = 'crash.zip';
+    
+    // Path to the data directory
+    EJS_pathtodata = 'data/';
+</script>
+<script src='data/loader.js'></script>
+    </body>
 </html>
