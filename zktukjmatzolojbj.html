@@ -89,8 +89,14 @@ body{
   transition:.4s;
 }
 
-.fade-out{opacity:0;transform:translateY(-10px);}
-.fade-in{animation:fadeIn .4s ease forwards;}
+.fade-out{
+  opacity:0;
+  transform:translateY(-10px);
+}
+
+.fade-in{
+  animation:fadeIn .4s ease forwards;
+}
 
 @keyframes fadeIn{
   from{opacity:0;transform:translateY(10px);}
@@ -177,7 +183,6 @@ body{
   max-height:250px;
 }
 
-/* Scroll custom */
 .track-list::-webkit-scrollbar{width:8px;}
 .track-list::-webkit-scrollbar-track{background:transparent;}
 .track-list::-webkit-scrollbar-thumb{
@@ -222,7 +227,6 @@ body{
   gap:15px;
 }
 
-/* Volume */
 .volume-control{
   display:flex;
   align-items:center;
@@ -289,7 +293,6 @@ Escolha uma playlist
 </div>
 </div>
 
-<!-- MINI PLAYER -->
 <div id="miniPlayer" class="mini-player">
 <span id="miniTitle"></span>
 
@@ -299,7 +302,6 @@ Escolha uma playlist
 <path id="wave1" d="M15 9a4 4 0 0 1 0 6"></path>
 <path id="wave2" d="M19 5a8 8 0 0 1 0 14"></path>
 </svg>
-
 <input type="range" id="volumeSlider" min="0" max="1" step="0.01">
 </div>
 </div>
@@ -324,46 +326,18 @@ const trackDuration=document.getElementById("trackDuration")
 const miniPlayer=document.getElementById("miniPlayer")
 const miniTitle=document.getElementById("miniTitle")
 const volumeSlider=document.getElementById("volumeSlider")
-const volumeIcon=document.getElementById("volumeIcon")
 const wave1=document.getElementById("wave1")
 const wave2=document.getElementById("wave2")
 
-/* Volume init */
-const savedVolume=localStorage.getItem("playerVolume")
-audio.volume=savedVolume?parseFloat(savedVolume):0.8
-volumeSlider.value=audio.volume
-
-function updateVolumeIcon(){
-  if(audio.volume==0){
-    wave1.style.display="none"
-    wave2.style.display="none"
-  }else if(audio.volume<0.5){
-    wave1.style.display="block"
-    wave2.style.display="none"
-  }else{
-    wave1.style.display="block"
-    wave2.style.display="block"
-  }
-}
-updateVolumeIcon()
+/* Volume */
+audio.volume=0.8
+volumeSlider.value=0.8
 
 volumeSlider.addEventListener("input",()=>{
-  audio.volume=volumeSlider.value
-  localStorage.setItem("playerVolume",audio.volume)
-  updateVolumeIcon()
+audio.volume=volumeSlider.value
 })
 
-volumeIcon.addEventListener("click",()=>{
-  if(audio.volume>0){
-    audio.volume=0
-  }else{
-    audio.volume=0.8
-  }
-  volumeSlider.value=audio.volume
-  localStorage.setItem("playerVolume",audio.volume)
-  updateVolumeIcon()
-})
-
+/* API */
 async function loadPlaylists(){
 try{
 const res=await fetch('/api/playlists')
@@ -375,6 +349,7 @@ placeholder.innerText="Erro ao carregar playlists."
 }
 }
 
+/* Sidebar */
 function renderSidebar(){
 playlistContainer.innerHTML=""
 for(let name in playlists){
@@ -386,37 +361,80 @@ playlistContainer.appendChild(div)
 }
 }
 
+/* Enter playlist with animation */
 function enterPlaylist(name){
 currentPlaylist=playlists[name]
+
+placeholder.classList.add("fade-out")
+
+setTimeout(()=>{
 placeholder.style.display="none"
 playerContent.style.display="flex"
+playerContent.classList.add("fade-in")
 renderTracks()
+},300)
 }
 
+/* Render tracks with duration */
 function renderTracks(){
 trackList.innerHTML=""
+
 currentPlaylist.forEach((track,index)=>{
 const div=document.createElement("div")
 div.className="track"
-div.innerHTML=`<span>${track.title}</span><span>--:--</span>`
+
+const titleSpan=document.createElement("span")
+titleSpan.innerText=track.title
+
+const durationSpan=document.createElement("span")
+durationSpan.innerText="--:--"
+
+div.appendChild(titleSpan)
+div.appendChild(durationSpan)
+
 div.onclick=()=>{
 currentTrackIndex=index
 loadTrack()
 audio.play()
 }
+
 trackList.appendChild(div)
+
+/* Load metadata for duration */
+const tempAudio=new Audio()
+tempAudio.src=track.file
+tempAudio.preload="metadata"
+
+tempAudio.onloadedmetadata=()=>{
+const total=tempAudio.duration
+const m=Math.floor(total/60)
+const s=Math.floor(total%60)
+durationSpan.innerText=`${m}:${s<10?"0":""}${s}`
+}
 })
 }
 
+/* Load track */
 function loadTrack(){
 const track=currentPlaylist[currentTrackIndex]
 audio.src=track.file
 trackTitle.innerText=track.title
 miniTitle.innerText=track.title
+trackDuration.innerText="0:00 / 0:00"
 progress.style.width="0%"
+
+audio.onloadedmetadata=()=>{
+const total=audio.duration
+const m=Math.floor(total/60)
+const s=Math.floor(total%60)
+trackDuration.innerText=`0:00 / ${m}:${s<10?"0":""}${s}`
+}
 }
 
-function togglePlay(){audio.paused?audio.play():audio.pause()}
+function togglePlay(){
+audio.paused?audio.play():audio.pause()
+}
+
 playBtn.onclick=togglePlay
 
 audio.onplay=()=>{
@@ -424,12 +442,30 @@ playBtn.innerText="⏸"
 miniPlayer.style.display="flex"
 }
 
-audio.onpause=()=>{playBtn.innerText="▶"}
+audio.onpause=()=>{
+playBtn.innerText="▶"
+}
 
 audio.ontimeupdate=()=>{
 if(!audio.duration) return
-progress.style.width=(audio.currentTime/audio.duration)*100+"%"
+
+const percent=(audio.currentTime/audio.duration)*100
+progress.style.width=percent+"%"
+
+const cm=Math.floor(audio.currentTime/60)
+const cs=Math.floor(audio.currentTime%60)
+const tm=Math.floor(audio.duration/60)
+const ts=Math.floor(audio.duration%60)
+
+trackDuration.innerText=
+`${cm}:${cs<10?"0":""}${cs} / ${tm}:${ts<10?"0":""}${ts}`
 }
+
+progressContainer.addEventListener("click",(e)=>{
+const rect=progressContainer.getBoundingClientRect()
+const clickX=e.clientX-rect.left
+audio.currentTime=(clickX/rect.width)*audio.duration
+})
 
 function nextTrack(){
 if(!currentPlaylist||!currentPlaylist.length) return
@@ -444,12 +480,6 @@ currentTrackIndex=(currentTrackIndex-1+currentPlaylist.length)%currentPlaylist.l
 loadTrack()
 audio.play()
 }
-
-progressContainer.addEventListener("click",(e)=>{
-const rect=progressContainer.getBoundingClientRect()
-const clickX=e.clientX-rect.left
-audio.currentTime=(clickX/rect.width)*audio.duration
-})
 
 loadPlaylists()
 </script>
