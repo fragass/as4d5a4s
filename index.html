@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -12,7 +12,6 @@
   --bg:#0b0b0f;
   --card:#121217;
   --hover:#1a1a22;
-  --active:#20202a;
   --border:#1e1e27;
   --text:#ffffff;
   --sub:#a1a1aa;
@@ -31,7 +30,6 @@ body{
   justify-content:center;
 }
 
-/* APP */
 .app{
   width:900px;
   height:550px;
@@ -41,7 +39,6 @@ body{
   display:flex;
 }
 
-/* SIDEBAR */
 .sidebar{
   width:220px;
   border-right:1px solid var(--border);
@@ -68,16 +65,13 @@ body{
   color:var(--text);
 }
 
-/* MAIN */
 .main{
   flex:1;
   padding:30px;
   display:flex;
   flex-direction:column;
-  position:relative;
 }
 
-/* ESTADO INICIAL */
 .placeholder{
   flex:1;
   display:flex;
@@ -85,7 +79,7 @@ body{
   justify-content:center;
   font-size:22px;
   color:var(--sub);
-  transition:.4s ease;
+  transition:.4s;
 }
 
 .fade-out{
@@ -98,17 +92,10 @@ body{
 }
 
 @keyframes fadeIn{
-  from{
-    opacity:0;
-    transform:translateY(10px);
-  }
-  to{
-    opacity:1;
-    transform:translateY(0);
-  }
+  from{opacity:0;transform:translateY(10px);}
+  to{opacity:1;transform:translateY(0);}
 }
 
-/* PLAYER */
 .player-content{
   display:none;
   flex-direction:column;
@@ -140,7 +127,6 @@ body{
   border-radius:6px;
 }
 
-/* CONTROLS */
 .controls{
   display:flex;
   justify-content:center;
@@ -161,11 +147,8 @@ body{
   transition:.2s;
 }
 
-.circle-btn:hover{
-  transform:scale(1.1);
-}
+.circle-btn:hover{transform:scale(1.1);}
 
-/* BOTÕES ANTERIOR / PRÓXIMO */
 .icon-btn{
   width:42px;
   height:42px;
@@ -178,7 +161,7 @@ body{
   display:flex;
   align-items:center;
   justify-content:center;
-  transition:.2s ease;
+  transition:.2s;
 }
 
 .icon-btn:hover{
@@ -186,7 +169,6 @@ body{
   transform:scale(1.08);
 }
 
-/* TRACK LIST */
 .track-list{
   margin-top:10px;
   overflow:auto;
@@ -207,7 +189,6 @@ body{
   color:var(--text);
 }
 
-/* MINI PLAYER */
 .mini-player{
   position:fixed;
   bottom:20px;
@@ -225,7 +206,6 @@ body{
 <body>
 
 <div class="app">
-
   <div class="sidebar">
     <h2>Playlists</h2>
     <div id="playlistContainer"></div>
@@ -233,12 +213,10 @@ body{
 
   <div class="main">
 
-    <!-- TEXTO INICIAL -->
     <div id="placeholder" class="placeholder">
       Escolha uma playlist
     </div>
 
-    <!-- PLAYER -->
     <div id="playerContent" class="player-content">
       <div class="track-info" id="trackTitle"></div>
       <div class="duration" id="trackDuration">0:00 / 0:00</div>
@@ -312,23 +290,54 @@ function enterPlaylist(name){
 
 function renderTracks(){
   trackList.innerHTML=""
+
   currentPlaylist.forEach((track,index)=>{
     const div=document.createElement("div")
     div.className="track"
-    div.innerHTML=`<span>${track.title}</span><span>${track.duration}</span>`
+
+    const titleSpan=document.createElement("span")
+    titleSpan.innerText=track.title
+
+    const durationSpan=document.createElement("span")
+    durationSpan.innerText="--:--"
+
+    div.appendChild(titleSpan)
+    div.appendChild(durationSpan)
+
     div.onclick=()=>{
       currentTrackIndex=index
       loadTrack()
       audio.play()
     }
+
     trackList.appendChild(div)
+
+    const tempAudio=new Audio()
+    tempAudio.src=track.file
+    tempAudio.preload="metadata"
+
+    tempAudio.onloadedmetadata=()=>{
+      const total=tempAudio.duration
+      const m=Math.floor(total/60)
+      const s=Math.floor(total%60)
+      durationSpan.innerText=`${m}:${s<10?"0":""}${s}`
+    }
   })
 }
 
 function loadTrack(){
   const track=currentPlaylist[currentTrackIndex]
+
   audio.src=track.file
   trackTitle.innerText=track.title
+  trackDuration.innerText="0:00 / 0:00"
+
+  audio.onloadedmetadata=()=>{
+    const total=audio.duration
+    const m=Math.floor(total/60)
+    const s=Math.floor(total%60)
+    trackDuration.innerText=`0:00 / ${m}:${s<10?"0":""}${s}`
+  }
 }
 
 function togglePlay(){
@@ -337,20 +346,30 @@ function togglePlay(){
 
 playBtn.onclick=togglePlay
 
-audio.addEventListener("play",()=>{
+audio.onplay=()=>{
   playBtn.innerText="⏸"
   miniPlayer.style.display="block"
   miniPlayer.innerText=trackTitle.innerText
-})
+}
 
-audio.addEventListener("pause",()=>{
+audio.onpause=()=>{
   playBtn.innerText="▶"
-})
+}
 
-audio.addEventListener("timeupdate",()=>{
+audio.ontimeupdate=()=>{
+  if(!audio.duration) return
+
   const percent=(audio.currentTime/audio.duration)*100
   progress.style.width=percent+"%"
-})
+
+  const cm=Math.floor(audio.currentTime/60)
+  const cs=Math.floor(audio.currentTime%60)
+  const tm=Math.floor(audio.duration/60)
+  const ts=Math.floor(audio.duration%60)
+
+  trackDuration.innerText=
+    `${cm}:${cs<10?"0":""}${cs} / ${tm}:${ts<10?"0":""}${ts}`
+}
 
 progressContainer.onclick=e=>{
   const width=progressContainer.clientWidth
