@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<link rel="icon" href="favicon.png" type="image/png">
+<script>
+if (!sessionStorage.getItem("token")) {
+  window.location.href = "index.html";
+}
+</script>
+
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Página inicial - Workday</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#0b0b0f;
+  --card:#121217;
+  --hover:#1a1a22;
+  --border:#1e1e27;
+  --text:#ffffff;
+  --sub:#a1a1aa;
+  --accent:#ffffff;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.app{
+  width:900px;
+  height:550px;
+  background:var(--card);
+  border-radius:20px;
+  overflow:hidden;
+  display:flex;
+}
+
+.sidebar{
+  width:220px;
+  border-right:1px solid var(--border);
+  padding:20px;
+}
+
+.sidebar h2{
+  font-size:12px;
+  text-transform:uppercase;
+  color:var(--sub);
+  margin-bottom:15px;
+}
+
+.playlist{
+  padding:8px;
+  border-radius:6px;
+  cursor:pointer;
+  color:var(--sub);
+  transition:.2s;
+}
+
+.playlist:hover{
+  background:var(--hover);
+  color:var(--text);
+}
+
+.main{
+  flex:1;
+  padding:30px;
+  display:flex;
+  flex-direction:column;
+}
+
+.placeholder{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  color:var(--sub);
+  transition:.4s;
+}
+
+.fade-out{
+  opacity:0;
+  transform:translateY(-10px);
+}
+
+.fade-in{
+  animation:fadeIn .4s ease forwards;
+}
+
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(10px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+.player-content{
+  display:none;
+  flex-direction:column;
+  height:100%;
+}
+
+.track-info{
+  font-size:22px;
+  font-weight:600;
+}
+
+.duration{
+  font-size:13px;
+  color:var(--sub);
+  margin-bottom:15px;
+}
+
+.progress-container{
+  height:6px;
+  background:#2a2a35;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.progress{
+  height:100%;
+  width:0%;
+  background:var(--accent);
+  border-radius:6px;
+}
+
+.controls{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:20px;
+  margin:25px 0;
+}
+
+.circle-btn{
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  border:none;
+  background:var(--accent);
+  color:var(--bg);
+  font-size:22px;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.circle-btn:hover{transform:scale(1.1);}
+
+.icon-btn{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text);
+  font-size:16px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:.2s;
+}
+
+.icon-btn:hover{
+  background:var(--hover);
+  transform:scale(1.08);
+}
+
+.track-list{
+  margin-top:10px;
+  overflow:auto;
+  padding-right:5px;
+  max-height:250px;
+}
+
+.track-list::-webkit-scrollbar{width:8px;}
+.track-list::-webkit-scrollbar-track{background:transparent;}
+.track-list::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,0.15);
+  border-radius:10px;
+}
+.track-list::-webkit-scrollbar-thumb:hover{
+  background:rgba(255,255,255,0.35);
+}
+.track-list{
+  scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,0.25) transparent;
+}
+
+.track{
+  padding:8px;
+  border-radius:6px;
+  cursor:pointer;
+  display:flex;
+  justify-content:space-between;
+  color:var(--sub);
+  transition:.2s;
+}
+
+.track:hover{
+  background:var(--hover);
+  color:var(--text);
+}
+
+/* MINI PLAYER */
+.mini-player{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:var(--card);
+  border:1px solid var(--border);
+  padding:12px 18px;
+  border-radius:14px;
+  font-size:13px;
+  display:none;
+  align-items:center;
+  gap:15px;
+}
+
+.volume-control{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.volume-control svg{
+  width:18px;
+  height:18px;
+  stroke:white;
+  opacity:.8;
+  cursor:pointer;
+}
+
+.volume-control input{
+  width:80px;
+  cursor:pointer;
+  accent-color:white;
+}
+
+.footer{
+  position:fixed;
+  bottom:14px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:12px;
+  color:white;
+  opacity:0.6;
+  letter-spacing:0.5px;
+  pointer-events:none;
+}
+    /* Mini perfil container */
+  #mini-profile {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  #mini-profile span {
+    font-weight: bold;
+    color: ##fff;
+  }
+
+  /* Seta */
+#arrow {
+  transition: transform 0.3s;
+  margin-left: 4px;
+}
+
+  /* Dropdown menu */
+  #dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 40px; /* logo abaixo do mini-profile */
+    right: 0;
+    background: rgba(0,0,0,0.9);
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    padding: 6px 10px;
+                z-index: 1000;
+  }
+
+  #dropdown-menu button {
+    background: #ff4d4d;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+    width: 100%;
+  }
+
+  #dropdown-menu button:hover {
+    background: #e60000;
+  }
+</style>
+</head>
+
+<body>
+
+        <!-- Painel lateral DIREITO -->
+      <div class="side-panel right-panel">
+<div id="mini-profile">
+   <span id="user-phone"></span>
+  <!-- seta fina em SVG -->
+  <svg id="arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="6 9 12 15 18 9"></polyline>
+  </svg>
+</div>
+
+  <!-- Dropdown menu -->
+  <div id="dropdown-menu">
+    <button id="logout">Sair</button>
+  </div>
+
+<div class="app">
+<div class="sidebar">
+<h2>Playlists</h2>
+<div id="playlistContainer"></div>
+</div>
+
+<div class="main">
+<div id="placeholder" class="placeholder">
+Escolha uma playlist
+</div>
+
+<div id="playerContent" class="player-content">
+<div class="track-info" id="trackTitle"></div>
+<div class="duration" id="trackDuration">0:00 / 0:00</div>
+
+<div class="progress-container" id="progressContainer">
+<div class="progress" id="progress"></div>
+</div>
+
+<div class="controls">
+<button class="icon-btn" onclick="prevTrack()">⏮</button>
+<button id="playBtn" class="circle-btn">▶</button>
+<button class="icon-btn" onclick="nextTrack()">⏭</button>
+</div>
+
+<div class="track-list" id="trackList"></div>
+</div>
+</div>
+</div>
+
+<div id="miniPlayer" class="mini-player">
+<span id="miniTitle"></span>
+
+<div class="volume-control">
+<svg id="volumeIcon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+<path id="wave1" d="M15 9a4 4 0 0 1 0 6"></path>
+<path id="wave2" d="M19 5a8 8 0 0 1 0 14"></path>
+</svg>
+<input type="range" id="volumeSlider" min="0" max="1" step="0.01">
+</div>
+</div>
+
+<audio id="audio"></audio>
+
+<script>
+let playlists={}
+let currentPlaylist=null
+let currentTrackIndex=0
+
+const playlistContainer=document.getElementById("playlistContainer")
+const placeholder=document.getElementById("placeholder")
+const playerContent=document.getElementById("playerContent")
+const trackList=document.getElementById("trackList")
+const audio=document.getElementById("audio")
+const playBtn=document.getElementById("playBtn")
+const progress=document.getElementById("progress")
+const progressContainer=document.getElementById("progressContainer")
+const trackTitle=document.getElementById("trackTitle")
+const trackDuration=document.getElementById("trackDuration")
+const miniPlayer=document.getElementById("miniPlayer")
+const miniTitle=document.getElementById("miniTitle")
+const volumeSlider=document.getElementById("volumeSlider")
+const wave1=document.getElementById("wave1")
+const wave2=document.getElementById("wave2")
+
+/* Volume */
+audio.volume=0.8
+volumeSlider.value=0.8
+
+volumeSlider.addEventListener("input",()=>{
+audio.volume=volumeSlider.value
+})
+
+/* API */
+async function loadPlaylists(){
+try{
+const res=await fetch('/api/playlists')
+if(!res.ok) throw new Error()
+playlists=await res.json()
+renderSidebar()
+}catch{
+placeholder.innerText="Erro ao carregar playlists."
+}
+}
+
+/* Sidebar */
+function renderSidebar(){
+playlistContainer.innerHTML=""
+for(let name in playlists){
+const div=document.createElement("div")
+div.className="playlist"
+div.innerText=name
+div.onclick=()=>enterPlaylist(name)
+playlistContainer.appendChild(div)
+}
+}
+
+/* Enter playlist with animation */
+function enterPlaylist(name){
+currentPlaylist=playlists[name]
+
+placeholder.classList.add("fade-out")
+
+setTimeout(()=>{
+placeholder.style.display="none"
+playerContent.style.display="flex"
+playerContent.classList.add("fade-in")
+renderTracks()
+},300)
+}
+
+/* Render tracks with duration */
+function renderTracks(){
+trackList.innerHTML=""
+
+currentPlaylist.forEach((track,index)=>{
+const div=document.createElement("div")
+div.className="track"
+
+const titleSpan=document.createElement("span")
+titleSpan.innerText=track.title
+
+const durationSpan=document.createElement("span")
+durationSpan.innerText="--:--"
+
+div.appendChild(titleSpan)
+div.appendChild(durationSpan)
+
+div.onclick=()=>{
+currentTrackIndex=index
+loadTrack()
+audio.play()
+}
+
+trackList.appendChild(div)
+
+/* Load metadata for duration */
+const tempAudio=new Audio()
+tempAudio.src=track.file
+tempAudio.preload="metadata"
+
+tempAudio.onloadedmetadata=()=>{
+const total=tempAudio.duration
+const m=Math.floor(total/60)
+const s=Math.floor(total%60)
+durationSpan.innerText=`${m}:${s<10?"0":""}${s}`
+}
+})
+}
+
+/* Load track */
+function loadTrack(){
+const track=currentPlaylist[currentTrackIndex]
+audio.src=track.file
+trackTitle.innerText=track.title
+miniTitle.innerText=track.title
+trackDuration.innerText="0:00 / 0:00"
+progress.style.width="0%"
+
+audio.onloadedmetadata=()=>{
+const total=audio.duration
+const m=Math.floor(total/60)
+const s=Math.floor(total%60)
+trackDuration.innerText=`0:00 / ${m}:${s<10?"0":""}${s}`
+}
+}
+
+function togglePlay(){
+audio.paused?audio.play():audio.pause()
+}
+
+playBtn.onclick=togglePlay
+
+audio.onplay=()=>{
+playBtn.innerText="⏸"
+miniPlayer.style.display="flex"
+}
+
+audio.onpause=()=>{
+playBtn.innerText="▶"
+}
+
+audio.ontimeupdate=()=>{
+if(!audio.duration) return
+
+const percent=(audio.currentTime/audio.duration)*100
+progress.style.width=percent+"%"
+
+const cm=Math.floor(audio.currentTime/60)
+const cs=Math.floor(audio.currentTime%60)
+const tm=Math.floor(audio.duration/60)
+const ts=Math.floor(audio.duration%60)
+
+trackDuration.innerText=
+`${cm}:${cs<10?"0":""}${cs} / ${tm}:${ts<10?"0":""}${ts}`
+}
+
+progressContainer.addEventListener("click",(e)=>{
+const rect=progressContainer.getBoundingClientRect()
+const clickX=e.clientX-rect.left
+audio.currentTime=(clickX/rect.width)*audio.duration
+})
+
+function nextTrack(){
+if(!currentPlaylist||!currentPlaylist.length) return
+currentTrackIndex=(currentTrackIndex+1)%currentPlaylist.length
+loadTrack()
+audio.play()
+}
+
+function prevTrack(){
+if(!currentPlaylist||!currentPlaylist.length) return
+currentTrackIndex=(currentTrackIndex-1+currentPlaylist.length)%currentPlaylist.length
+loadTrack()
+audio.play()
+}
+
+loadPlaylists()
+</script>
+
+        <script>
+  const user = sessionStorage.getItem("loggedUser");
+  document.getElementById("user-phone").textContent = user;
+
+  const miniProfile = document.getElementById("mini-profile");
+  const dropdownMenu = document.getElementById("dropdown-menu");
+  const arrow = document.getElementById("arrow");
+
+  miniProfile.onclick = () => {
+    const open = dropdownMenu.style.display === "block";
+    dropdownMenu.style.display = open ? "none" : "block";
+    arrow.style.transform = open ? "rotate(0deg)" : "rotate(180deg)";
+  };
+
+  document.getElementById("logout").onclick = () => {
+    sessionStorage.clear();
+    window.location.href = "index.html";
+  };
+
+  document.addEventListener("click", (e) => {
+    if (!miniProfile.contains(e.target) && !dropdownMenu.contains(e.target)) {
+      dropdownMenu.style.display = "none";
+      arrow.style.transform = "rotate(0deg)";
+    }
+  });
+</script>
+
+<div class="footer">
+feito por fragass.
+</div>
+
+</body>
+</html>
+
+
