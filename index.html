@@ -5,92 +5,231 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Minimal Player</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #0f0f14;
-      color: #fff;
-      display: flex;
-      height: 100vh;
-      overflow: hidden;
-    }
-    .sidebar {
-      width: 260px;
-      background: #15151d;
-      padding: 20px;
-      border-right: 1px solid #222;
-      overflow-y: auto;
-    }
-    .sidebar h2 {
-      margin-bottom: 20px;
-      font-weight: 600;
-      font-size: 18px;
-      color: #1db954;
-    }
-    .playlist {
-      margin-bottom: 12px;
-      padding: 10px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    .playlist:hover, .playlist.active { background: #1f1f2a; }
-    .main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      padding: 30px;
-      justify-content: space-between;
-    }
-    .track-info { font-size: 20px; font-weight: 600; margin-bottom: 5px; }
-    .duration { font-size: 14px; color: #aaa; }
-    .controls {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      margin-top: 20px;
-    }
-    .controls button {
-      background: #1db954;
-      border: none;
-      padding: 12px 16px;
-      border-radius: 50px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
-      transition: 0.2s;
-    }
-    .controls button:hover { transform: scale(1.1); }
-    .progress-container {
-      width: 100%;
-      height: 6px;
-      background: #222;
-      border-radius: 5px;
-      margin-top: 20px;
-      cursor: pointer;
-    }
-    .progress { height: 100%; width: 0%; background: #1db954; border-radius: 5px; }
-    .volume-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-top: 20px;
-      justify-content: center;
-    }
-    input[type="range"] { width: 150px; }
-    .track-list { margin-top: 30px; overflow-y: auto; flex: 1; }
-    .track {
-      padding: 10px;
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      font-size: 14px;
-      transition: 0.2s;
-    }
-    .track:hover, .track.active { background: #1f1f2a; }
+ <style>
+/* RESET */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg-main: #0b0b0f;
+  --bg-sidebar: #121217;
+  --bg-hover: #1a1a22;
+  --bg-active: #20202a;
+  --border: #1e1e27;
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --white: #ffffff;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-main);
+  color: var(--text-primary);
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 240px;
+  background: var(--bg-sidebar);
+  padding: 24px 18px;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.sidebar h2 {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.playlist {
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.playlist:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.playlist.active {
+  background: var(--bg-active);
+  color: var(--white);
+}
+
+/* MAIN */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 30px 40px 160px 40px; /* aumenta aqui */
+  overflow-y: auto;
+}
+
+/* TRACK INFO */
+.track-info {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.duration {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* TRACK LIST */
+.track-list {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.track {
+  padding: 10px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--text-secondary);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.track:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.track.active {
+  background: var(--bg-active);
+  color: var(--white);
+}
+
+/* PLAYER FIXO (BOTTOM BAR) */
+.player {
+  position: fixed;
+  bottom: 0;
+  left: 240px;
+  right: 0;
+  height: 120px; /* um pouco mais alto */
+  background: #0f0f14;
+  border-top: 1px solid var(--border);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* <- muda aqui */
+  padding: 24px 40px 18px 40px; /* espaço real no topo */
+}
+
+/* CONTROLS */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 12px;
+  margin-top: 12px;
+}
+
+.controls button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 8px 14px;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.controls button:hover {
+  background: var(--white);
+  color: #000;
+  transform: scale(1.05);
+}
+
+/* PROGRESS BAR */
+.progress-container {
+  width: 100%;
+  height: 4px;
+  background: #1a1a22;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+}
+
+.progress {
+  height: 100%;
+  width: 0%;
+  background: var(--white);
+  border-radius: 4px;
+  transition: width 0.1s linear;
+}
+
+/* VOLUME */
+.volume-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  justify-content: center;
+}
+
+input[type="range"] {
+  width: 120px;
+  appearance: none;
+  height: 3px;
+  background: #2a2a35;
+  border-radius: 3px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: var(--white);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* SCROLLBAR DISCRETA */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #222;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #333;
+}
+
   </style>
 </head>
 <body>
@@ -217,4 +356,5 @@
     loadPlaylistsFromServer();
   </script>
 </body>
+
 </html>
