@@ -180,7 +180,6 @@ body{
 .track-list{
   margin-top:10px;
   overflow:auto;
-  padding-right:5px;
   max-height:250px;
 }
 
@@ -199,7 +198,6 @@ body{
   color:var(--text);
 }
 
-/* MINI PLAYER */
 .mini-player{
   position:fixed;
   bottom:20px;
@@ -213,85 +211,10 @@ body{
   align-items:center;
   gap:15px;
 }
-
-.volume-control{
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-
-.volume-control input{
-  width:80px;
-  cursor:pointer;
-  accent-color:white;
-}
-
-.footer{
-  position:fixed;
-  bottom:14px;
-  left:50%;
-  transform:translateX(-50%);
-  font-size:12px;
-  color:white;
-  opacity:0.6;
-  letter-spacing:0.5px;
-  pointer-events:none;
-}
-
-#mini-profile {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
-  font-size: 14px;
-  padding: 6px 12px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-}
-
-#mini-profile span {
-  font-weight: bold;
-  color: #fff;
-}
-
-#dropdown-menu {
-  display: none;
-  position: absolute;
-  top: 40px;
-  right: 0;
-  background: rgba(0,0,0,0.9);
-  border-radius: 6px;
-  padding: 6px 10px;
-}
-
-#dropdown-menu button {
-  background: #ff4d4d;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  cursor: pointer;
-  width: 100%;
-}
 </style>
 </head>
 
 <body>
-
-<div id="mini-profile">
-   <span id="user-phone"></span>
-   <svg id="arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-     <polyline points="6 9 12 15 18 9"></polyline>
-   </svg>
-</div>
-
-<div id="dropdown-menu">
-  <button id="logout">Sair</button>
-</div>
 
 <div class="app">
 <div class="sidebar">
@@ -323,13 +246,6 @@ Escolha uma playlist
 </div>
 </div>
 
-<div id="miniPlayer" class="mini-player">
-<span id="miniTitle"></span>
-<div class="volume-control">
-<input type="range" id="volumeSlider" min="0" max="1" step="0.01">
-</div>
-</div>
-
 <audio id="audio"></audio>
 
 <script>
@@ -347,17 +263,8 @@ const progress=document.getElementById("progress")
 const progressContainer=document.getElementById("progressContainer")
 const trackTitle=document.getElementById("trackTitle")
 const trackDuration=document.getElementById("trackDuration")
-const miniPlayer=document.getElementById("miniPlayer")
-const miniTitle=document.getElementById("miniTitle")
-const volumeSlider=document.getElementById("volumeSlider")
 
-audio.volume=0.8
-volumeSlider.value=0.8
-
-volumeSlider.addEventListener("input",()=>{
-audio.volume=volumeSlider.value
-})
-
+/* API */
 async function loadPlaylists(){
 try{
 const res=await fetch('/api/playlists')
@@ -368,6 +275,7 @@ placeholder.innerText="Erro ao carregar playlists."
 }
 }
 
+/* Sidebar */
 function renderSidebar(){
 playlistContainer.innerHTML=""
 for(let name in playlists){
@@ -379,6 +287,7 @@ playlistContainer.appendChild(div)
 }
 }
 
+/* Enter playlist */
 function enterPlaylist(name){
 currentPlaylist=playlists[name]
 placeholder.style.display="none"
@@ -386,27 +295,59 @@ playerContent.style.display="flex"
 renderTracks()
 }
 
+/* Render tracks + duration */
 function renderTracks(){
 trackList.innerHTML=""
+
 currentPlaylist.forEach((track,index)=>{
 const div=document.createElement("div")
 div.className="track"
-div.innerText=track.title
+
+const title=document.createElement("span")
+title.innerText=track.title
+
+const duration=document.createElement("span")
+duration.innerText="--:--"
+
+div.appendChild(title)
+div.appendChild(duration)
+
 div.onclick=()=>{
 currentTrackIndex=index
 loadTrack()
 audio.play()
 }
+
 trackList.appendChild(div)
+
+/* 🔥 carregar metadata */
+const tempAudio=new Audio()
+tempAudio.src=track.file
+tempAudio.preload="metadata"
+
+tempAudio.onloadedmetadata=()=>{
+if(!isFinite(tempAudio.duration)) return
+const total=tempAudio.duration
+const m=Math.floor(total/60)
+const s=Math.floor(total%60)
+duration.innerText=`${m}:${s<10?"0":""}${s}`
+}
 })
 }
 
+/* Load track */
 function loadTrack(){
 const track=currentPlaylist[currentTrackIndex]
 audio.src=track.file
 trackTitle.innerText=track.title
-miniTitle.innerText=track.title
 progress.style.width="0%"
+
+audio.onloadedmetadata=()=>{
+const total=audio.duration
+const m=Math.floor(total/60)
+const s=Math.floor(total%60)
+trackDuration.innerText=`0:00 / ${m}:${s<10?"0":""}${s}`
+}
 }
 
 function togglePlay(){
@@ -415,19 +356,26 @@ audio.paused?audio.play():audio.pause()
 
 playBtn.onclick=togglePlay
 
-audio.onplay=()=>{
-playBtn.innerText="⏸"
-miniPlayer.style.display="flex"
-}
-
-audio.onpause=()=>{
-playBtn.innerText="▶"
-}
+audio.onplay=()=>{ playBtn.innerText="⏸" }
+audio.onpause=()=>{ playBtn.innerText="▶" }
 
 audio.ontimeupdate=()=>{
 if(!audio.duration) return
 const percent=(audio.currentTime/audio.duration)*100
 progress.style.width=percent+"%"
+
+const cm=Math.floor(audio.currentTime/60)
+const cs=Math.floor(audio.currentTime%60)
+const tm=Math.floor(audio.duration/60)
+const ts=Math.floor(audio.duration%60)
+
+trackDuration.innerText=
+`${cm}:${cs<10?"0":""}${cs} / ${tm}:${ts<10?"0":""}${ts}`
+}
+
+/* 🔥 AUTO NEXT */
+audio.onended=()=>{
+nextTrack()
 }
 
 progressContainer.addEventListener("click",(e)=>{
@@ -450,30 +398,8 @@ loadTrack()
 audio.play()
 }
 
-/* 🔥 AUTO NEXT */
-audio.onended=()=>{
-nextTrack()
-}
-
 loadPlaylists()
-
-const user=sessionStorage.getItem("loggedUser")||"Usuário"
-document.getElementById("user-phone").textContent=user
-
-document.getElementById("mini-profile").onclick=()=>{
-const menu=document.getElementById("dropdown-menu")
-menu.style.display=menu.style.display==="block"?"none":"block"
-}
-
-document.getElementById("logout").onclick=()=>{
-sessionStorage.clear()
-window.location.href="index.html"
-}
 </script>
-
-<div class="footer">
-feito por fragass.
-</div>
 
 </body>
 </html>
