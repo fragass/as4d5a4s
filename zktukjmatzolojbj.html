@@ -87,21 +87,6 @@ body{
   justify-content:center;
   font-size:22px;
   color:var(--sub);
-  transition:.4s;
-}
-
-.fade-out{
-  opacity:0;
-  transform:translateY(-10px);
-}
-
-.fade-in{
-  animation:fadeIn .4s ease forwards;
-}
-
-@keyframes fadeIn{
-  from{opacity:0;transform:translateY(10px);}
-  to{opacity:1;transform:translateY(0);}
 }
 
 .player-content{
@@ -152,10 +137,7 @@ body{
   color:var(--bg);
   font-size:22px;
   cursor:pointer;
-  transition:.2s;
 }
-
-.circle-btn:hover{transform:scale(1.1);}
 
 .icon-btn{
   width:42px;
@@ -166,21 +148,36 @@ body{
   color:var(--text);
   font-size:16px;
   cursor:pointer;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  transition:.2s;
 }
 
-.icon-btn:hover{
-  background:var(--hover);
-  transform:scale(1.08);
-}
-
+/* SCROLL RESTAURADO */
 .track-list{
   margin-top:10px;
   overflow:auto;
+  padding-right:5px;
   max-height:250px;
+}
+
+.track-list::-webkit-scrollbar{
+  width:8px;
+}
+
+.track-list::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+.track-list::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,0.15);
+  border-radius:10px;
+}
+
+.track-list::-webkit-scrollbar-thumb:hover{
+  background:rgba(255,255,255,0.35);
+}
+
+.track-list{
+  scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,0.25) transparent;
 }
 
 .track{
@@ -190,7 +187,6 @@ body{
   display:flex;
   justify-content:space-between;
   color:var(--sub);
-  transition:.2s;
 }
 
 .track:hover{
@@ -198,6 +194,7 @@ body{
   color:var(--text);
 }
 
+/* MINI PLAYER RESTAURADO */
 .mini-player{
   position:fixed;
   bottom:20px;
@@ -210,6 +207,31 @@ body{
   display:none;
   align-items:center;
   gap:15px;
+}
+
+.volume-control{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.volume-control input{
+  width:80px;
+  cursor:pointer;
+  accent-color:white;
+}
+
+/* FOOTER RESTAURADO */
+.footer{
+  position:fixed;
+  bottom:14px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:12px;
+  color:white;
+  opacity:0.6;
+  letter-spacing:0.5px;
+  pointer-events:none;
 }
 </style>
 </head>
@@ -246,6 +268,14 @@ Escolha uma playlist
 </div>
 </div>
 
+<!-- MINI PLAYER -->
+<div id="miniPlayer" class="mini-player">
+<span id="miniTitle"></span>
+<div class="volume-control">
+<input type="range" id="volumeSlider" min="0" max="1" step="0.01">
+</div>
+</div>
+
 <audio id="audio"></audio>
 
 <script>
@@ -263,8 +293,17 @@ const progress=document.getElementById("progress")
 const progressContainer=document.getElementById("progressContainer")
 const trackTitle=document.getElementById("trackTitle")
 const trackDuration=document.getElementById("trackDuration")
+const miniPlayer=document.getElementById("miniPlayer")
+const miniTitle=document.getElementById("miniTitle")
+const volumeSlider=document.getElementById("volumeSlider")
 
-/* API */
+audio.volume=0.8
+volumeSlider.value=0.8
+
+volumeSlider.addEventListener("input",()=>{
+audio.volume=volumeSlider.value
+})
+
 async function loadPlaylists(){
 try{
 const res=await fetch('/api/playlists')
@@ -275,7 +314,6 @@ placeholder.innerText="Erro ao carregar playlists."
 }
 }
 
-/* Sidebar */
 function renderSidebar(){
 playlistContainer.innerHTML=""
 for(let name in playlists){
@@ -287,7 +325,6 @@ playlistContainer.appendChild(div)
 }
 }
 
-/* Enter playlist */
 function enterPlaylist(name){
 currentPlaylist=playlists[name]
 placeholder.style.display="none"
@@ -295,10 +332,8 @@ playerContent.style.display="flex"
 renderTracks()
 }
 
-/* Render tracks + duration */
 function renderTracks(){
 trackList.innerHTML=""
-
 currentPlaylist.forEach((track,index)=>{
 const div=document.createElement("div")
 div.className="track"
@@ -320,7 +355,6 @@ audio.play()
 
 trackList.appendChild(div)
 
-/* 🔥 carregar metadata */
 const tempAudio=new Audio()
 tempAudio.src=track.file
 tempAudio.preload="metadata"
@@ -335,11 +369,11 @@ duration.innerText=`${m}:${s<10?"0":""}${s}`
 })
 }
 
-/* Load track */
 function loadTrack(){
 const track=currentPlaylist[currentTrackIndex]
 audio.src=track.file
 trackTitle.innerText=track.title
+miniTitle.innerText=track.title
 progress.style.width="0%"
 
 audio.onloadedmetadata=()=>{
@@ -356,8 +390,14 @@ audio.paused?audio.play():audio.pause()
 
 playBtn.onclick=togglePlay
 
-audio.onplay=()=>{ playBtn.innerText="⏸" }
-audio.onpause=()=>{ playBtn.innerText="▶" }
+audio.onplay=()=>{
+playBtn.innerText="⏸"
+miniPlayer.style.display="flex"
+}
+
+audio.onpause=()=>{
+playBtn.innerText="▶"
+}
 
 audio.ontimeupdate=()=>{
 if(!audio.duration) return
@@ -373,7 +413,7 @@ trackDuration.innerText=
 `${cm}:${cs<10?"0":""}${cs} / ${tm}:${ts<10?"0":""}${ts}`
 }
 
-/* 🔥 AUTO NEXT */
+/* AUTO NEXT */
 audio.onended=()=>{
 nextTrack()
 }
@@ -400,6 +440,10 @@ audio.play()
 
 loadPlaylists()
 </script>
+
+<div class="footer">
+feito por fragass.
+</div>
 
 </body>
 </html>
