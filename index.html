@@ -88,13 +88,11 @@ body{
   transition:.4s ease;
 }
 
-/* animação saída */
 .fade-out{
   opacity:0;
   transform:translateY(-10px);
 }
 
-/* animação entrada */
 .fade-in{
   animation:fadeIn .4s ease forwards;
 }
@@ -110,14 +108,13 @@ body{
   }
 }
 
-/* PLAYER CONTEUDO */
+/* PLAYER */
 .player-content{
   display:none;
   flex-direction:column;
   height:100%;
 }
 
-/* INFO */
 .track-info{
   font-size:22px;
   font-weight:600;
@@ -166,6 +163,27 @@ body{
 
 .circle-btn:hover{
   transform:scale(1.1);
+}
+
+/* BOTÕES ANTERIOR / PRÓXIMO */
+.icon-btn{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text);
+  font-size:16px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:.2s ease;
+}
+
+.icon-btn:hover{
+  background:var(--hover);
+  transform:scale(1.08);
 }
 
 /* TRACK LIST */
@@ -220,7 +238,7 @@ body{
       Escolha uma playlist
     </div>
 
-    <!-- CONTEÚDO PLAYER -->
+    <!-- PLAYER -->
     <div id="playerContent" class="player-content">
       <div class="track-info" id="trackTitle"></div>
       <div class="duration" id="trackDuration">0:00 / 0:00</div>
@@ -230,9 +248,9 @@ body{
       </div>
 
       <div class="controls">
-        <button onclick="prevTrack()">⏮</button>
+        <button class="icon-btn" onclick="prevTrack()">⏮</button>
         <button id="playBtn" class="circle-btn">▶</button>
-        <button onclick="nextTrack()">⏭</button>
+        <button class="icon-btn" onclick="nextTrack()">⏭</button>
       </div>
 
       <div class="track-list" id="trackList"></div>
@@ -262,7 +280,6 @@ const trackTitle=document.getElementById("trackTitle")
 const trackDuration=document.getElementById("trackDuration")
 const miniPlayer=document.getElementById("miniPlayer")
 
-/* LOAD PLAYLISTS */
 async function loadPlaylists(){
   const res=await fetch('/api/playlists')
   playlists=await res.json()
@@ -283,7 +300,6 @@ function renderSidebar(){
 function enterPlaylist(name){
   currentPlaylist=playlists[name]
 
-  // anima texto saindo
   placeholder.classList.add("fade-out")
 
   setTimeout(()=>{
