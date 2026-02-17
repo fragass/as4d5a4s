@@ -89,13 +89,13 @@ body{
   color:var(--sub);
 }
 
-/* 🔥 ANIMAÇÃO RESTAURADA */
+/* ANIMAÇÃO ORIGINAL RESTAURADA CORRETAMENTE */
 .player-content{
   display:none;
   flex-direction:column;
   height:100%;
   opacity:0;
-  transform:translateY(10px);
+  transform:translateY(12px);
   transition:opacity .35s ease, transform .35s ease;
 }
 
@@ -159,7 +159,7 @@ body{
   cursor:pointer;
 }
 
-/* SCROLL CUSTOM RESTAURADO */
+/* SCROLL CUSTOM */
 .track-list{
   margin-top:10px;
   overflow:auto;
@@ -316,12 +316,13 @@ playlistContainer.appendChild(div)
 
 function enterPlaylist(name){
 currentPlaylist=playlists[name]
+
 placeholder.style.display="none"
 playerContent.style.display="flex"
 
-setTimeout(()=>{
+playerContent.classList.remove("active")
+void playerContent.offsetWidth
 playerContent.classList.add("active")
-},10)
 
 renderTracks()
 }
