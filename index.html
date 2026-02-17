@@ -201,6 +201,17 @@ body{
   font-size:13px;
   display:none;
 }
+        .footer{
+  position:fixed;
+  bottom:14px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:12px;
+  color:white;
+  opacity:0.6;
+  letter-spacing:0.5px;
+  pointer-events:none;
+}
 </style>
 </head>
 
@@ -215,12 +226,7 @@ body{
   <div class="main">
 
 <div id="placeholder" class="placeholder">
-  <div style="text-align:center;">
-    <div>Escolha uma playlist</div>
-    <div style="font-size:13px; margin-top:8px; color:white; opacity:0.9;">
-      feito por fragass.
-    </div>
-  </div>
+  Escolha uma playlist
 </div>
 
     <div id="playerContent" class="player-content">
@@ -397,6 +403,11 @@ function prevTrack(){
 loadPlaylists()
 </script>
 
+<div class="footer">
+  feito por fragass.
+</div>
+        
 </body>
 </html>
+
 
