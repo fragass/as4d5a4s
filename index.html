@@ -305,26 +305,14 @@ input[type="range"]::-webkit-slider-thumb {
       currentPlaylist.forEach((track, index) => {
         const div = document.createElement('div');
         div.className = 'track';
-        div.innerHTML = `<span>${track.title}</span><span>${track.duration ? track.duration : 'Carregando...'}</span>`;
+        div.innerHTML = `<span>${track.title}</span><span>${track.duration}</span>`;
         div.onclick = () => {
           currentTrackIndex = index;
           loadTrack();
           playTrack();
         };
         trackList.appendChild(div);
-
-        // Se ainda não tem duração, carregar metadata
-        if (!track.duration) {
-          const tempAudio = new Audio(track.file);
-          tempAudio.addEventListener('loadedmetadata', () => {
-            const min = Math.floor(tempAudio.duration / 60);
-            const sec = Math.floor(tempAudio.duration % 60);
-            track.duration = `${min}:${sec < 10 ? '0' : ''}${sec}`;
-            div.querySelector('span:last-child').innerText = track.duration;
-          });
-        }
       });
-    }
     }
 
     function loadTrack() {
@@ -368,4 +356,5 @@ input[type="range"]::-webkit-slider-thumb {
     loadPlaylistsFromServer();
   </script>
 </body>
+
 </html>
