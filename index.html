@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="dark">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Minimal Player Pro</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
-:root {
+:root{
   --bg-main:#0b0b0f;
   --bg-sidebar:#121217;
   --bg-hover:#1a1a22;
@@ -30,7 +30,7 @@
   --accent:#000;
 }
 
-*{box-sizing:border-box;margin:0;padding:0;}
+*{margin:0;padding:0;box-sizing:border-box;}
 
 body{
   font-family:'Inter',sans-serif;
@@ -162,15 +162,62 @@ body{
   text-align:center;
 }
 
-input[type=range]{width:200px;}
+input[type=range]{
+  width:200px;
+  appearance:none;
+  height:4px;
+  background:#2a2a35;
+  border-radius:4px;
+  outline:none;
+}
 
-canvas{margin-top:15px;width:100%;height:40px;}
-
-.theme-toggle{
-  margin-top:20px;
-  font-size:12px;
+input[type=range]::-webkit-slider-thumb{
+  appearance:none;
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  background:white;
   cursor:pointer;
+}
+
+input[type=range]::-moz-range-thumb{
+  width:14px;
+  height:14px;
+  border:none;
+  border-radius:50%;
+  background:white;
+  cursor:pointer;
+}
+
+/* VISUALIZER */
+canvas{
+  margin-top:15px;
+  width:100%;
+  height:40px;
+}
+
+/* THEME BUTTON */
+.theme-btn{
+  position:fixed;
+  bottom:15px;
+  left:15px;
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  background:var(--bg-active);
+  border:1px solid var(--border);
   color:var(--text-secondary);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  font-size:14px;
+  transition:.2s;
+}
+
+.theme-btn:hover{
+  background:var(--accent);
+  color:var(--bg-main);
 }
 </style>
 </head>
@@ -202,41 +249,53 @@ canvas{margin-top:15px;width:100%;height:40px;}
 
   <canvas id="visualizer"></canvas>
 
-  <div class="theme-toggle" onclick="toggleTheme()">Alternar Tema</div>
-
   <div class="track-list" id="trackList"></div>
 </div>
+
+<div class="theme-btn" onclick="toggleTheme()">☼</div>
 
 <audio id="audio" preload="auto"></audio>
 
 <script>
-let playlists = {};
-let currentPlaylistName = null;
-let currentPlaylist = null;
-let currentTrackIndex = 0;
+let playlists={};
+let currentPlaylistName=null;
+let currentPlaylist=null;
+let currentTrackIndex=0;
+let audioCtx, analyser, source;
 
-const audio = document.getElementById('audio');
-const trackTitle = document.getElementById('trackTitle');
-const trackDuration = document.getElementById('trackDuration');
-const progress = document.getElementById('progress');
-const progressContainer = document.getElementById('progressContainer');
-const volumeSlider = document.getElementById('volumeSlider');
-const playlistContainer = document.getElementById('playlistContainer');
-const trackList = document.getElementById('trackList');
-const playBtn = document.getElementById('playBtn');
+const audio=document.getElementById('audio');
+const trackTitle=document.getElementById('trackTitle');
+const trackDuration=document.getElementById('trackDuration');
+const progress=document.getElementById('progress');
+const progressContainer=document.getElementById('progressContainer');
+const volumeSlider=document.getElementById('volumeSlider');
+const playlistContainer=document.getElementById('playlistContainer');
+const trackList=document.getElementById('trackList');
+const playBtn=document.getElementById('playBtn');
 
-/* LOAD PLAYLISTS */
+/* INIT AUDIO CONTEXT ON FIRST PLAY */
+function initAudioContext(){
+  if(audioCtx) return;
+  audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  analyser=audioCtx.createAnalyser();
+  source=audioCtx.createMediaElementSource(audio);
+  source.connect(analyser);
+  analyser.connect(audioCtx.destination);
+  analyser.fftSize=64;
+  draw();
+}
+
 async function loadPlaylistsFromServer(){
-  const res = await fetch('/api/playlists');
-  playlists = await res.json();
+  const res=await fetch('/api/playlists');
+  playlists=await res.json();
   renderPlaylists();
 
-  const savedPlaylist = localStorage.getItem("lastPlaylist");
-  const savedIndex = localStorage.getItem("lastTrack");
+  const savedPlaylist=localStorage.getItem("lastPlaylist");
+  const savedIndex=localStorage.getItem("lastTrack");
 
   if(savedPlaylist && playlists[savedPlaylist]){
-    selectPlaylist(savedPlaylist, false);
-    currentTrackIndex = parseInt(savedIndex) || 0;
+    selectPlaylist(savedPlaylist,false);
+    currentTrackIndex=parseInt(savedIndex)||0;
     loadTrack();
   }
 }
@@ -289,7 +348,11 @@ function loadTrack(){
     trackList.children[currentTrackIndex].classList.add('active');
 }
 
-function togglePlay(){ audio.paused?audio.play():audio.pause(); }
+function togglePlay(){
+  initAudioContext();
+  audio.paused?audio.play():audio.pause();
+}
+
 playBtn.onclick=togglePlay;
 
 audio.addEventListener('play',()=>playBtn.innerText='⏸');
@@ -319,21 +382,23 @@ function nextTrack(){
   loadTrack();
   audio.play();
 }
+
 function prevTrack(){
   currentTrackIndex=(currentTrackIndex-1+currentPlaylist.length)%currentPlaylist.length;
   loadTrack();
   audio.play();
 }
 
-/* Keyboard */
 document.addEventListener("keydown",e=>{
-  if(e.code==="Space"){ e.preventDefault(); togglePlay(); }
+  if(e.code==="Space"){
+    e.preventDefault();
+    togglePlay();
+  }
 });
 
-/* Volume Persist */
+/* Volume */
 volumeSlider.value=localStorage.getItem("volume")||0.5;
 audio.volume=volumeSlider.value;
-
 volumeSlider.oninput=()=>{
   audio.volume=volumeSlider.value;
   localStorage.setItem("volume",volumeSlider.value);
@@ -349,15 +414,10 @@ function toggleTheme(){
 /* Visualizer */
 const canvas=document.getElementById("visualizer");
 const ctx=canvas.getContext("2d");
-const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-const analyser=audioCtx.createAnalyser();
-const source=audioCtx.createMediaElementSource(audio);
-source.connect(analyser);
-analyser.connect(audioCtx.destination);
-analyser.fftSize=64;
 
 function draw(){
   requestAnimationFrame(draw);
+  if(!analyser) return;
   const data=new Uint8Array(analyser.frequencyBinCount);
   analyser.getByteFrequencyData(data);
   ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -366,7 +426,6 @@ function draw(){
     ctx.fillRect(i*8,40-v/5,5,v/5);
   });
 }
-draw();
 
 loadPlaylistsFromServer();
 </script>
