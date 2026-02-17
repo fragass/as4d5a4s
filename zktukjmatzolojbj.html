@@ -2,6 +2,11 @@
 <html lang="pt-BR">
 <head>
         <link rel="icon" href="favicon.png" type="image/png">
+        <script>
+  if (!sessionStorage.getItem("token")) {
+    window.location.href = "index.html";
+  }
+</script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Página inicial - Workday</title>
@@ -409,5 +414,6 @@ loadPlaylists()
         
 </body>
 </html>
+
 
 
