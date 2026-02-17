@@ -89,14 +89,8 @@ body{
   transition:.4s;
 }
 
-.fade-out{
-  opacity:0;
-  transform:translateY(-10px);
-}
-
-.fade-in{
-  animation:fadeIn .4s ease forwards;
-}
+.fade-out{opacity:0;transform:translateY(-10px);}
+.fade-in{animation:fadeIn .4s ease forwards;}
 
 @keyframes fadeIn{
   from{opacity:0;transform:translateY(10px);}
@@ -176,32 +170,23 @@ body{
   transform:scale(1.08);
 }
 
-/* Track list */
 .track-list{
   margin-top:10px;
   overflow:auto;
   padding-right:5px;
+  max-height:250px;
 }
 
-/* Scroll customizado */
-.track-list::-webkit-scrollbar{
-  width:8px;
-}
-
-.track-list::-webkit-scrollbar-track{
-  background:transparent;
-}
-
+/* Scroll custom */
+.track-list::-webkit-scrollbar{width:8px;}
+.track-list::-webkit-scrollbar-track{background:transparent;}
 .track-list::-webkit-scrollbar-thumb{
   background:rgba(255,255,255,0.15);
   border-radius:10px;
-  transition:.2s;
 }
-
 .track-list::-webkit-scrollbar-thumb:hover{
   background:rgba(255,255,255,0.35);
 }
-
 .track-list{
   scrollbar-width:thin;
   scrollbar-color:rgba(255,255,255,0.25) transparent;
@@ -222,6 +207,7 @@ body{
   color:var(--text);
 }
 
+/* MINI PLAYER */
 .mini-player{
   position:fixed;
   bottom:20px;
@@ -232,6 +218,29 @@ body{
   border-radius:14px;
   font-size:13px;
   display:none;
+  align-items:center;
+  gap:15px;
+}
+
+/* Volume */
+.volume-control{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.volume-control svg{
+  width:18px;
+  height:18px;
+  stroke:white;
+  opacity:.8;
+  cursor:pointer;
+}
+
+.volume-control input{
+  width:80px;
+  cursor:pointer;
+  accent-color:white;
 }
 
 .footer{
@@ -245,79 +254,10 @@ body{
   letter-spacing:0.5px;
   pointer-events:none;
 }
-
-/* Mini profile */
-#mini-profile{
-  position:absolute;
-  top:10px;
-  right:10px;
-  background:rgba(0,0,0,0.6);
-  color:#fff;
-  font-family:Arial,sans-serif;
-  font-size:14px;
-  padding:6px 12px;
-  border-radius:8px;
-  box-shadow:0 2px 5px rgba(0,0,0,0.3);
-  z-index:1000;
-  display:flex;
-  align-items:center;
-  gap:8px;
-  cursor:pointer;
-  user-select:none;
-}
-
-#mini-profile span{
-  font-weight:bold;
-  color:#fff;
-}
-
-#arrow{
-  transition:transform .3s;
-  margin-left:4px;
-}
-
-#dropdown-menu{
-  display:none;
-  position:absolute;
-  top:40px;
-  right:0;
-  background:rgba(0,0,0,0.9);
-  border-radius:6px;
-  box-shadow:0 2px 5px rgba(0,0,0,0.3);
-  padding:6px 10px;
-  z-index:1000;
-}
-
-#dropdown-menu button{
-  background:#ff4d4d;
-  color:#fff;
-  border:none;
-  border-radius:6px;
-  padding:6px 12px;
-  cursor:pointer;
-  font-size:14px;
-  transition:.2s;
-  width:100%;
-}
-
-#dropdown-menu button:hover{
-  background:#e60000;
-}
 </style>
 </head>
 
 <body>
-
-<div id="mini-profile">
-<span id="user-phone"></span>
-<svg id="arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-<polyline points="6 9 12 15 18 9"></polyline>
-</svg>
-</div>
-
-<div id="dropdown-menu">
-<button id="logout">Sair</button>
-</div>
 
 <div class="app">
 <div class="sidebar">
@@ -349,7 +289,21 @@ Escolha uma playlist
 </div>
 </div>
 
-<div id="miniPlayer" class="mini-player"></div>
+<!-- MINI PLAYER -->
+<div id="miniPlayer" class="mini-player">
+<span id="miniTitle"></span>
+
+<div class="volume-control">
+<svg id="volumeIcon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+<path id="wave1" d="M15 9a4 4 0 0 1 0 6"></path>
+<path id="wave2" d="M19 5a8 8 0 0 1 0 14"></path>
+</svg>
+
+<input type="range" id="volumeSlider" min="0" max="1" step="0.01">
+</div>
+</div>
+
 <audio id="audio"></audio>
 
 <script>
@@ -368,11 +322,57 @@ const progressContainer=document.getElementById("progressContainer")
 const trackTitle=document.getElementById("trackTitle")
 const trackDuration=document.getElementById("trackDuration")
 const miniPlayer=document.getElementById("miniPlayer")
+const miniTitle=document.getElementById("miniTitle")
+const volumeSlider=document.getElementById("volumeSlider")
+const volumeIcon=document.getElementById("volumeIcon")
+const wave1=document.getElementById("wave1")
+const wave2=document.getElementById("wave2")
+
+/* Volume init */
+const savedVolume=localStorage.getItem("playerVolume")
+audio.volume=savedVolume?parseFloat(savedVolume):0.8
+volumeSlider.value=audio.volume
+
+function updateVolumeIcon(){
+  if(audio.volume==0){
+    wave1.style.display="none"
+    wave2.style.display="none"
+  }else if(audio.volume<0.5){
+    wave1.style.display="block"
+    wave2.style.display="none"
+  }else{
+    wave1.style.display="block"
+    wave2.style.display="block"
+  }
+}
+updateVolumeIcon()
+
+volumeSlider.addEventListener("input",()=>{
+  audio.volume=volumeSlider.value
+  localStorage.setItem("playerVolume",audio.volume)
+  updateVolumeIcon()
+})
+
+volumeIcon.addEventListener("click",()=>{
+  if(audio.volume>0){
+    audio.volume=0
+  }else{
+    audio.volume=0.8
+  }
+  volumeSlider.value=audio.volume
+  localStorage.setItem("playerVolume",audio.volume)
+  updateVolumeIcon()
+})
 
 async function loadPlaylists(){
+try{
 const res=await fetch('/api/playlists')
+if(!res.ok) throw new Error()
 playlists=await res.json()
 renderSidebar()
+}catch{
+placeholder.innerText="Erro ao carregar playlists."
+}
 }
 
 function renderSidebar(){
@@ -388,13 +388,9 @@ playlistContainer.appendChild(div)
 
 function enterPlaylist(name){
 currentPlaylist=playlists[name]
-placeholder.classList.add("fade-out")
-setTimeout(()=>{
 placeholder.style.display="none"
 playerContent.style.display="flex"
-playerContent.classList.add("fade-in")
 renderTracks()
-},300)
 }
 
 function renderTracks(){
@@ -402,34 +398,13 @@ trackList.innerHTML=""
 currentPlaylist.forEach((track,index)=>{
 const div=document.createElement("div")
 div.className="track"
-
-const titleSpan=document.createElement("span")
-titleSpan.innerText=track.title
-
-const durationSpan=document.createElement("span")
-durationSpan.innerText="--:--"
-
-div.appendChild(titleSpan)
-div.appendChild(durationSpan)
-
+div.innerHTML=`<span>${track.title}</span><span>--:--</span>`
 div.onclick=()=>{
 currentTrackIndex=index
 loadTrack()
 audio.play()
 }
-
 trackList.appendChild(div)
-
-const tempAudio=new Audio()
-tempAudio.src=track.file
-tempAudio.preload="metadata"
-
-tempAudio.onloadedmetadata=()=>{
-const total=tempAudio.duration
-const m=Math.floor(total/60)
-const s=Math.floor(total%60)
-durationSpan.innerText=`${m}:${s<10?"0":""}${s}`
-}
 })
 }
 
@@ -437,89 +412,46 @@ function loadTrack(){
 const track=currentPlaylist[currentTrackIndex]
 audio.src=track.file
 trackTitle.innerText=track.title
-trackDuration.innerText="0:00 / 0:00"
-
-audio.onloadedmetadata=()=>{
-const total=audio.duration
-const m=Math.floor(total/60)
-const s=Math.floor(total%60)
-trackDuration.innerText=`0:00 / ${m}:${s<10?"0":""}${s}`
-}
+miniTitle.innerText=track.title
+progress.style.width="0%"
 }
 
-function togglePlay(){
-audio.paused?audio.play():audio.pause()
-}
-
+function togglePlay(){audio.paused?audio.play():audio.pause()}
 playBtn.onclick=togglePlay
 
 audio.onplay=()=>{
 playBtn.innerText="⏸"
-miniPlayer.style.display="block"
-miniPlayer.innerText=trackTitle.innerText
+miniPlayer.style.display="flex"
 }
 
-audio.onpause=()=>{
-playBtn.innerText="▶"
-}
+audio.onpause=()=>{playBtn.innerText="▶"}
 
 audio.ontimeupdate=()=>{
 if(!audio.duration) return
-const percent=(audio.currentTime/audio.duration)*100
-progress.style.width=percent+"%"
-
-const cm=Math.floor(audio.currentTime/60)
-const cs=Math.floor(audio.currentTime%60)
-const tm=Math.floor(audio.duration/60)
-const ts=Math.floor(audio.duration%60)
-
-trackDuration.innerText=
-`${cm}:${cs<10?"0":""}${cs} / ${tm}:${ts<10?"0":""}${ts}`
-}
-
-progressContainer.onclick=e=>{
-const width=progressContainer.clientWidth
-audio.currentTime=(e.offsetX/width)*audio.duration
+progress.style.width=(audio.currentTime/audio.duration)*100+"%"
 }
 
 function nextTrack(){
+if(!currentPlaylist||!currentPlaylist.length) return
 currentTrackIndex=(currentTrackIndex+1)%currentPlaylist.length
 loadTrack()
 audio.play()
 }
 
 function prevTrack(){
+if(!currentPlaylist||!currentPlaylist.length) return
 currentTrackIndex=(currentTrackIndex-1+currentPlaylist.length)%currentPlaylist.length
 loadTrack()
 audio.play()
 }
 
-loadPlaylists()
-
-const user=sessionStorage.getItem("loggedUser")
-document.getElementById("user-phone").textContent=user
-
-const miniProfile=document.getElementById("mini-profile")
-const dropdownMenu=document.getElementById("dropdown-menu")
-const arrow=document.getElementById("arrow")
-
-miniProfile.onclick=()=>{
-const open=dropdownMenu.style.display==="block"
-dropdownMenu.style.display=open?"none":"block"
-arrow.style.transform=open?"rotate(0deg)":"rotate(180deg)"
-}
-
-document.getElementById("logout").onclick=()=>{
-sessionStorage.clear()
-window.location.href="index.html"
-}
-
-document.addEventListener("click",(e)=>{
-if(!miniProfile.contains(e.target)&&!dropdownMenu.contains(e.target)){
-dropdownMenu.style.display="none"
-arrow.style.transform="rotate(0deg)"
-}
+progressContainer.addEventListener("click",(e)=>{
+const rect=progressContainer.getBoundingClientRect()
+const clickX=e.clientX-rect.left
+audio.currentTime=(clickX/rect.width)*audio.duration
 })
+
+loadPlaylists()
 </script>
 
 <div class="footer">
