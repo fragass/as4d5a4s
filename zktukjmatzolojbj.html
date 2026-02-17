@@ -477,12 +477,40 @@ function prevTrack(){
 loadPlaylists()
 </script>
 
+              <script>
+  const user = sessionStorage.getItem("loggedUser");
+  document.getElementById("user-phone").textContent = user;
+
+  const miniProfile = document.getElementById("mini-profile");
+  const dropdownMenu = document.getElementById("dropdown-menu");
+  const arrow = document.getElementById("arrow");
+
+  miniProfile.onclick = () => {
+    const open = dropdownMenu.style.display === "block";
+    dropdownMenu.style.display = open ? "none" : "block";
+    arrow.style.transform = open ? "rotate(0deg)" : "rotate(180deg)";
+  };
+
+  document.getElementById("logout").onclick = () => {
+    sessionStorage.clear();
+    window.location.href = "index.html";
+  };
+
+  document.addEventListener("click", (e) => {
+    if (!miniProfile.contains(e.target) && !dropdownMenu.contains(e.target)) {
+      dropdownMenu.style.display = "none";
+      arrow.style.transform = "rotate(0deg)";
+    }
+  });
+</script>
+
 <div class="footer">
   feito por fragass.
 </div>
         
 </body>
 </html>
+
 
 
 
